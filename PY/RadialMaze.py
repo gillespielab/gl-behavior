@@ -49,12 +49,14 @@ slash = ssi.filepath_separator
 
 # check if the environemnt is my dev environment
 if slash == '\\': # equivalent to checking if the environment is Windows (my computer) or Linux (the machines downstairs)
+    debug = True
     # override the paths for the parameter file and the log file
     #filepath = r"C:\Users\Violet\Downloads\template_parameter-log.txt"
     filepath = r"C:\Users\Violet\Downloads\template_parameter-log - V2.txt"
     ssi.open_log(name, r"C:\Users\Violet\Downloads")
 else:
     # derived path values for the parameter file and the log file
+    debug = False
     name = name.lower()
     desktop = slash.join(os.getcwd().split(slash)[:-1])
     root = f"{desktop}{slash}6-Arm-Training-Plans"
@@ -655,34 +657,34 @@ def callback(line):
         maze.check_success_rate()
 
 # Helper Object for Testing
-# TODO: remove this
-class Poker:
-    def __init__(self, home = 7, downs:int = 3):
-        self.home = home
-        self.downs = downs
-        self.t = 0
-        self._callback('READY')
+if debug:
+    class Poker:
+        def __init__(self, home = 7, downs:int = 3):
+            self.home = home
+            self.downs = downs
+            self.t = 0
+            self._callback('READY')
+        
+        def _callback(self, command:str):
+            callback(f"{self.t} {command}")
+            self.t += 1
+        
+        def poke(self, well:int):
+            self._callback(f"UP {well}")
+            for _ in range(self.downs): 
+                self._callback(f"DOWN {well}")
+        
+        def trial(self, well:int):
+            self.poke(self.home)
+            self.poke(well)
+        
+        def __call__(self, well:int, pokes:int = 1, full_trial:bool = True):
+            if full_trial:
+                for _ in range(pokes): self.trial(well)
+            else:
+                for _ in range(pokes): self.poke(well)
+        
+        def lockend(self):
+            self._callback("LOCKEND")
     
-    def _callback(self, command:str):
-        callback(f"{self.t} {command}")
-        self.t += 1
-    
-    def poke(self, well:int):
-        self._callback(f"UP {well}")
-        for _ in range(self.downs): 
-            self._callback(f"DOWN {well}")
-    
-    def trial(self, well:int):
-        self.poke(self.home)
-        self.poke(well)
-    
-    def __call__(self, well:int, pokes:int = 1, full_trial:bool = True):
-        if full_trial:
-            for _ in range(pokes): self.trial(well)
-        else:
-            for _ in range(pokes): self.poke(well)
-    
-    def lockend(self):
-        self._callback("LOCKEND")
-
-poke = Poker()
+    poke = Poker()
