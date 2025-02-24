@@ -304,7 +304,8 @@ class PreProcessor(Epoch):
                 self.trials.append(Trial.current)
                 Block.current.trials.append(Trial.current)
                 if not Trial.current.home:
-                    Trial.current.home = Poke(None, None, self.maze.search_mode or self.maze.outreps == 1, self.maze.phase, self.maze.goal, None, None, Trial.current)
+                    Trial.current.home = self._poke(t, None, False)
+                    Trial.current.home.search_mode |= self.maze.outreps == 1
             else:
                 cleanup_required = False
         
