@@ -151,6 +151,8 @@ class PreProcessor(Epoch):
         self.blocks = []
         self.trials = []
         
+        Trial.current = Trial(None)
+        
         self.unplotted_pokes = deque()
         
         self.complete = False
@@ -162,10 +164,6 @@ class PreProcessor(Epoch):
         self.X = self.parameters.max_trials + 2
         self.fig = None
         self.ax = None
-        
-        self.current_block = None
-        self.current_trial = Trial(None)
-        self.current_poke = None
         
         self.open_file()
         self.init_plot()
@@ -179,24 +177,24 @@ class PreProcessor(Epoch):
             file.close()
     
     def log_current_trial(self):
-        if self.active and self.current_trial and self.current_trial.has_pokes():
+        if self.active and Trial.current and Trial.current.has_pokes():
             # Replace Null Data with a Sentinel
             null_values = []
-            for name, value in self.current_trial.__dict__.items():
+            for name, value in Trial.current.__dict__.items():
                 if value == None:
                     null_values.append(name)
                     value = -1
                     if name == 'outer':
-                        value = Poke(-1, False, self.maze.phase, self.maze.search_mode, self.current_block.goal, -1, -1, self.current_trial)
-                    self.current_trial.__dict__[name] = value
+                        value = Poke(-1, False, self.maze.phase, self.maze.search_mode, Block.current.goal, -1, -1, Trial.current)
+                    Trial.current.__dict__[name] = value
                     
             # Make Sure the Goal is Present/Formatted
-            goal = self.current_trial.block.goal
-            if not self.current_trial.block.goal:
-                self.current_trial.block.goal = [w.index for w in self.maze.goal]
+            goal = Trial.current.block.goal
+            if not Trial.current.block.goal:
+                Trial.current.block.goal = [w.index for w in self.maze.goal]
             
             # Get the Data, and Create the String
-            data = self.current_trial.to_table_entry(include_index = False)
+            data = Trial.current.to_table_entry(include_index = False)
             line = Epoch.rmTrialParser.build(data)
             
             # Add the Line to the File
@@ -206,9 +204,9 @@ class PreProcessor(Epoch):
                 file.close()
             
             # Fix the Edits to the Data
-            self.current_trial.block.goal = goal
+            Trial.current.block.goal = goal
             for name in null_values:
-                self.current_trial.__dict__[name] = None
+                Trial.current.__dict__[name] = None
     
     def _init_plot(self):
         plt.ion()
@@ -281,106 +279,105 @@ class PreProcessor(Epoch):
     
     def new_block(self, t:int) -> None:
         # Clean Up the Current Block
-        if self.current_block: 
-            self.current_block._on_load(True)
+        if Block.current: 
             self.add_block_divider()
         
         # Start a New Block
-        self.current_block = Block(self)
-        self.current_block.goal = [w.index for w in self.maze.goal]
+        Block.current = Block(self)
+        Block.current.goal = [w.index for w in self.maze.goal]
         self.outreps = self.maze.reps_remaining
-        self.current_block.all_trials = self.current_block.trials
-        self.current_block.start = t
-        self.blocks.append(self.current_block)
+        Block.current.all_trials = Block.current.trials
+        Block.current.start = t
+        self.blocks.append(Block.current)
         
         # Check an Edge Case for the 1st Trial
-        if self.first_trial and not self.current_trial.block:
-            self.current_trial.block = self.current_block
+        if self.first_trial and not Trial.current:
+            Trial.current.block = Block.current
     
     def new_trial(self, t:int) -> None:
         # Add the First Trial to the List of Trials
         cleanup_required = True
         if self.first_trial:
-            if self.current_trial.lockouts or self.current_trial.outer or self.current_trial.home:
-                self.current_trial.block = self.current_block
-                self.current_trial.outreps = self.current_block.outreps
-                self.trials.append(self.current_trial)
-                self.current_block.trials.append(self.current_trial)
-                if not self.current_trial.home:
-                    self.current_trial.home = Poke(None, None, self.maze.search_mode or self.maze.outreps == 1, self.maze.phase, self.maze.goal, None, None, self.current_trial)
+            if Trial.current.has_pokes():
+                Trial.current.block = Block.current
+                Trial.current.outreps = Block.current.outreps
+                self.trials.append(Trial.current)
+                Block.current.trials.append(Trial.current)
+                if not Trial.current.home:
+                    Trial.current.home = Poke(None, None, self.maze.search_mode or self.maze.outreps == 1, self.maze.phase, self.maze.goal, None, None, Trial.current)
             else:
                 cleanup_required = False
         
         # Clean Up the Current Trial
         if cleanup_required:
-            self.current_trial._on_load()
+            Trial.current._on_load()
             self.log_current_trial()
         self.update_plot()
         
         # Start a New Trial
-        self.current_trial = Trial(self.current_block, self.current_poke)
-        self.current_trial.reps_remaining = self.maze.reps_remaining
+        Trial.current = Trial(Block.current, Poke.current)
+        Trial.current.reps_remaining = self.maze.reps_remaining
         self.first_trial = False
         
         # Add the Trial to the Trial Lists
-        self.current_block.trials.append(self.current_trial)
-        self.trials.append(self.current_trial)
+        Block.current.trials.append(Trial.current)
+        self.trials.append(Trial.current)
     
     def add_home(self, t:int, well) -> None:
         # Start a New Trial
         self.new_trial(t)
         
         # Make a New Poke Object
-        self.current_poke = Poke(well.index, True, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, self.current_trial)
-        self.current_poke.is_home = True
-        #self.unplotted_pokes.append(self.current_poke)
+        Poke.current = Poke(well.index, True, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, Trial.current)
+        Poke.current.is_home = True
+        #self.unplotted_pokes.append(Poke.current)
         
         # Add the Poke to the Trial
-        self.current_trial.home = self.current_poke
+        Trial.current.home = Poke.current
     
     def add_outer(self, t:int, well, rewarded:bool) -> None:
         # Make a New Poke Object
-        self.current_poke = Poke(well.index, rewarded, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, self.current_trial)
-        self.current_poke.is_home = False
-        self.unplotted_pokes.append(self.current_poke)
+        Poke.current = Poke(well.index, rewarded, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, Trial.current)
+        Poke.current.is_home = False
+        self.unplotted_pokes.append(Poke.current)
         self.update_plot()
         
         # Add the Poke to the Trial
-        self.current_trial.outer = self.current_poke
-        self.current_trial.complete = True # includes the trial in the plot
+        Trial.current.outer = Poke.current
+        Trial.current.complete = True # includes the trial in the plot
         
         # Fix the Search Mode Bug
-        if self.current_trial.index == 0 and len(self.blocks) > 1:
-            try: self.current_trial._on_load()
+        if Trial.current.index == 0 and len(self.blocks) > 1:
+            try: Trial.current._on_load()
             except: pass
     
     def add_lockout(self, t:int, well) -> None:
         # Make a New Poke Object
-        self.current_poke = Poke(well.index, False, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, self.current_trial)
-        self.current_poke.is_home = False
-        self.current_poke.lockout = True
-        self.unplotted_pokes.append(self.current_poke)
+        Poke.current = Poke(well.index, False, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, Trial.current)
+        Poke.current.is_home = False
+        Poke.current.lockout = True
+        self.unplotted_pokes.append(Poke.current)
         self.update_plot()
         
         # Add the Poke to the Current Trial's Lockout List
-        self.current_trial.lockouts.append(self.current_poke)
+        Trial.current.lockouts.append(Poke.current)
         
         # Update the Plot
         self.X += 1
         self._set_xaxis_lims()
     
     def down(self, t):
-        self.current_trial.end = t
-        if self.current_poke:
-            self.current_poke.end = t
+        Trial.current.end = t
+        if Poke.current:
+            Poke.current.end = t
         
     def close(self, t):
-        if self.current_trial: 
-            self.current_trial._on_load()
-            if self.current_trial.end == None != t:
-                self.current_trial.end = t
-        if self.current_block: 
-            self.current_block._on_load()
+        if Trial.current: 
+            Trial.current._on_load()
+            if Trial.current.end == None != t:
+                Trial.current.end = t
+        if Block.current:
+            Block.current._on_load()
         self.log_current_trial()
         self.update_plot()
         if self.plot and self.active:
@@ -444,7 +441,7 @@ class RadialMaze(FileDrivenMaze):
         wells.forbid_simultaneous_rewards()
         ssi.disp(f'maze initialization completed at {ssi.get_timestamp()} [backup epoch timer started]')
         ssi.logger.add_line_break()
-        self.pre_processor.current_trial.start = t
+        Trial.current.start = t
         self.select_goal(t)
     
     def up(self, t, well):
