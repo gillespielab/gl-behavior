@@ -151,6 +151,7 @@ class PreProcessor(Epoch):
         self.blocks = []
         self.trials = []
         
+        Trial.trial_num = 0
         Trial.current = Trial(None)
         
         self.unplotted_pokes = deque()
