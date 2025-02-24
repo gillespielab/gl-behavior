@@ -323,28 +323,33 @@ class PreProcessor(Epoch):
         Block.current.trials.append(Trial.current)
         self.trials.append(Trial.current)
     
+    def _poke(self, t:int, well, rewarded:bool) -> Poke:
+        return Poke(well.index, rewarded, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None)
+    
     def add_home(self, t:int, well) -> None:
         # Start a New Trial
         self.new_trial(t)
         
         # Make a New Poke Object
-        Poke.current = Poke(well.index, True, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, Trial.current)
+        self._poke(t, well, True)
         Poke.current.is_home = True
         #self.unplotted_pokes.append(Poke.current)
         
         # Add the Poke to the Trial
-        Trial.current.home = Poke.current
+        Trial.current.add_home()
     
     def add_outer(self, t:int, well, rewarded:bool) -> None:
         # Make a New Poke Object
-        Poke.current = Poke(well.index, rewarded, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, Trial.current)
+        self._poke(t, well, rewarded)
         Poke.current.is_home = False
-        self.unplotted_pokes.append(Poke.current)
-        self.update_plot()
         
         # Add the Poke to the Trial
-        Trial.current.outer = Poke.current
+        Trial.current.add_outer()
         Trial.current.complete = True # includes the trial in the plot
+        
+        # Update the Plot
+        self.unplotted_pokes.append(Poke.current)
+        self.update_plot()
         
         # Fix the Search Mode Bug
         if Trial.current.index == 0 and len(self.blocks) > 1:
@@ -353,14 +358,14 @@ class PreProcessor(Epoch):
     
     def add_lockout(self, t:int, well) -> None:
         # Make a New Poke Object
-        Poke.current = Poke(well.index, False, self.maze.search_mode, self.maze.phase, self.maze.goal, t, None, Trial.current)
+        self._poke(t, well, False)
         Poke.current.is_home = False
         Poke.current.lockout = True
         self.unplotted_pokes.append(Poke.current)
         self.update_plot()
         
         # Add the Poke to the Current Trial's Lockout List
-        Trial.current.lockouts.append(Poke.current)
+        Trial.current.add_lockout()
         
         # Update the Plot
         self.X += 1
