@@ -159,7 +159,6 @@ class PreProcessor(Epoch):
         
         self.complete = False
         
-        self.first_trial = True
         self.active = True
         
         self.x = 1
@@ -179,7 +178,7 @@ class PreProcessor(Epoch):
             file.close()
     
     def log_current_trial(self):
-        if self.active and Trial.current and Trial.current.has_pokes():
+        if self.active and Trial.current and Trial.current.trial_num:
             # Replace Null Data with a Sentinel
             null_values = []
             for name, value in Trial.current.__dict__.items():
@@ -291,30 +290,11 @@ class PreProcessor(Epoch):
         Block.current.all_trials = Block.current.trials
         Block.current.start = t
         self.blocks.append(Block.current)
-        
-        # Check an Edge Case for the 1st Trial
-        if self.first_trial and not Trial.current:
-            Trial.current.block = Block.current
     
     def new_trial(self, t:int) -> None:
-        # Add the First Trial to the List of Trials
-        cleanup_required = True
-        if self.first_trial:
-            if Trial.current.has_pokes():
-                Trial.current.block = Block.current
-                Trial.current.outreps = Block.current.outreps
-                self.trials.append(Trial.current)
-                Block.current.trials.append(Trial.current)
-                if not Trial.current.home:
-                    Trial.current.home = self._poke(t, None, False)
-                    Trial.current.home.search_mode |= self.maze.outreps == 1
-            else:
-                cleanup_required = False
-        
-        # Clean Up the Current Trial
-        if cleanup_required:
-            Trial.current._on_load()
-            self.log_current_trial()
+        # Cleanup the Previous Trial
+        Trial.current._on_load()
+        self.log_current_trial()
         self.update_plot()
         
         # Start a New Trial
@@ -409,7 +389,7 @@ class RadialMaze(FileDrivenMaze):
         
         # Initialize Other Parameters
         self.arms = self.possible_goal_count
-        self.phase = phases.home
+        self.phase = phases.start
         self.successful_epoch = False
         self.timeout_grace_period = 10
         self.reward_error = False
@@ -514,15 +494,6 @@ class RadialMaze(FileDrivenMaze):
                 
                 # Update the Phase
                 self.phase = phases.home
-            elif self.phase == phases.home: # relies on 2 up pokes not happening in a row
-                # Add the Lockout Poke to the Data
-                self.pre_processor.add_lockout(t, well)
-                
-                # Begin a Lockout
-                self.lockout()
-            elif self.phase == phases.lockend:
-                # Add the Lockout Poke to the Data
-                self.pre_processor.add_lockout(t, well)
             elif self.phase == phases.arms:
                 # Add the Outer Poke to the Data
                 self.pre_processor.add_outer(t, well, rewarded)
@@ -532,9 +503,13 @@ class RadialMaze(FileDrivenMaze):
                 
                 # Update the Phase
                 self.phase = phases.home
-            elif self.phase == phases.start:
+            elif self.phase <= phases.home: # relies on 2 up pokes not happening in a row
                 # Add the Lockout Poke to the Data
                 self.pre_processor.add_lockout(t, well)
+                
+                # Begin a Lockout
+                if self.phase == phases.home:
+                    self.lockout()
             
             # Update the Well Activation
             if self.phase != phases.lockout:
