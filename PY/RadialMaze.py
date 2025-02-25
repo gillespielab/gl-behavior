@@ -27,7 +27,8 @@ class groups:
 
 class phases:
     """An Enum Containing the Maze Phase Codes"""
-    start = -1
+    start = -2
+    lockend = -1
     home = 0
     arms = 1
     lockout = 2
@@ -576,7 +577,7 @@ class RadialMaze(FileDrivenMaze):
     def lockend(self, t = None):
         """End a Lockout Period"""
         # Turn the Home Well On
-        self.phase = phases.home
+        self.phase = phases.lockend
         self.home.activate(True)
     
     def end_epoch(self, t = None):
