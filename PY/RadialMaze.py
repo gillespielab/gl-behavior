@@ -58,7 +58,7 @@ else:
     # derived path values for the parameter file and the log file
     debug = False
     name = name.lower()
-    desktop = slash.join(os.getcwd().split(slash)[:-1])
+    desktop = slash.join(os.getcwd().split(slash)[:-2])
     root = f"{desktop}{slash}6-Arm-Training-Plans"
     filepath = f"{root}{slash}{name}_parameter-log.txt"
     
