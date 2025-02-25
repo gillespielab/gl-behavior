@@ -520,6 +520,9 @@ class RadialMaze(FileDrivenMaze):
                 
                 # Begin a Lockout
                 self.lockout()
+            elif self.phase == phases.lockend:
+                # Add the Lockout Poke to the Data
+                self.pre_processor.add_lockout(t, well)
             elif self.phase == phases.arms:
                 # Add the Outer Poke to the Data
                 self.pre_processor.add_outer(t, well, rewarded)
