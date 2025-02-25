@@ -210,8 +210,13 @@ class PreProcessor(Epoch):
                 Trial.current.__dict__[name] = None
     
     def _init_plot(self):
+        
+        def on_close(event):
+            self.plot = False
+        
         plt.ion()
         self.fig, self.ax = plt.subplots()
+        self.fig.canvas.mpl_connect('close_event', on_close)
         plt.suptitle(ssi.logger.filename[:-4].replace('_', ' ') + ": Running")
         plt.ylabel('Arm Number')
         plt.xlabel('Trials + Lockouts')
