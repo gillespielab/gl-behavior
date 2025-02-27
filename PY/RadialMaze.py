@@ -40,7 +40,7 @@ Open the Log
 """
 
 # the rat you're currently working with
-name = 'test'
+name = 'demo'
 
 # whether or not to enable live plotting of the data
 live_plot = True
@@ -53,7 +53,7 @@ if slash == '\\': # equivalent to checking if the environment is Windows (my com
     debug = True
     # override the paths for the parameter file and the log file
     #filepath = r"C:\Users\Violet\Downloads\template_parameter-log.txt"
-    filepath = r"C:\Users\Violet\Downloads\template_parameter-log - V2.txt"
+    filepath = r"C:\Users\Violet\Downloads\demo_parameter-log.txt"
     ssi.open_log(name, r"C:\Users\Violet\Downloads")
 else:
     # derived path values for the parameter file and the log file
@@ -162,7 +162,8 @@ class PreProcessor(Epoch):
         self.active = True
         
         self.x = 1
-        self.X = self.parameters.max_trials + 2
+        outreps = sum(self.parameters.outreps)/len(self.parameters.outreps) if hasattr(self.parameters.outreps, '__iter__') else self.parameters.outreps
+        self.X = self.parameters.max_trials + 2 if self.parameters.max_trials > -1 else int(self.parameters.goal_blocks * outreps / self.parameters.success_threshold)
         self.fig = None
         self.ax = None
         
@@ -209,6 +210,15 @@ class PreProcessor(Epoch):
             for name in null_values:
                 Trial.current.__dict__[name] = None
     
+    def _try_plot(self, method, *args):
+        """a wrapper to make sure plotting never breaks anything"""
+        try:
+            if self.plot and self.active:
+                method(*args)
+        except:
+            print('warning: unable to initialize the live plot; live plot disabled')
+            self.plot = False
+    
     def _init_plot(self):
         
         def on_close(event):
@@ -238,14 +248,6 @@ class PreProcessor(Epoch):
         except:
             pass
     
-    def init_plot(self):
-        if self.plot:
-            try:
-                self._init_plot()
-            except:
-                print('warning: unable to initialize the live plot; live plot disabled')
-                self.plot = False
-    
     def _update_plot_full(self):
         self.ax.cla()
         self._set_axis_params()
@@ -266,22 +268,19 @@ class PreProcessor(Epoch):
         #self.fig.canvas.draw()
         #self.fig.canvas.flush_events()
     
-    def add_block_divider(self):
+    def _add_block_divider(self):
         self.update_plot() # this is necessary to make sure self.x is accurate
-        if self.plot and self.active and self.maze.outreps > 1 and self.x > 1:
-            try:
-                self.ax.plot([self.x - 0.5]*2, [0, 8], color = 'lightgrey')
-            except:
-                print('warning: live plotting failed; live plotting disabled')
-                self.plot = False
+        if self.maze.outreps != 1 and self.x > 1:
+            self.ax.plot([self.x - 0.5]*2, [0, 8], color = 'lightgrey')
+    
+    def init_plot(self):
+        self._try_plot(self._init_plot)
+    
+    def add_block_divider(self):
+        self._try_plot(self._add_block_divider)
     
     def update_plot(self):
-        if self.plot and self.active:
-            try:
-                self._update_plot()
-            except:
-                print('warning: live plotting failed; live plotting disabled')
-                self.plot = False
+        self._try_plot(self._update_plot)
     
     def new_block(self, t:int) -> None:
         # Clean Up the Current Block
@@ -480,6 +479,7 @@ class RadialMaze(FileDrivenMaze):
         else:
             # Record the Poke
             self.total_visits[well.index - 1] += 1
+            self.updated_weighted_visits(well.index, rewarded)
             
             if rewarded:
                 # Add the Outer Poke to the Data
@@ -527,7 +527,7 @@ class RadialMaze(FileDrivenMaze):
         self.pre_processor.down(t)
         
         # check if the epoch is over
-        if self.stats.home > self.max_trials or self.timed_out():
+        if (self.end_mode == 0 and self.stats.home > self.max_trials) or self.timed_out():
             # End the Epoch
             self.end_epoch()
         else:
@@ -540,9 +540,13 @@ class RadialMaze(FileDrivenMaze):
                 ssi.logger.add_line_break(char = '-')
                 self.search_mode = 1
                 self.stats.blocks += 1
-                self.select_goal(t)
-                self.stats.this_goal = 0
-                self.pokes.append([])
+                if self.end_mode == 1 and self.stats.blocks >= self.goal_blocks:
+                    # End the Epoch
+                    self.end_epoch()
+                else:
+                    self.select_goal(t)
+                    self.stats.this_goal = 0
+                    self.pokes.append([])
     
     def lockout(self, t = None):
         """Begin a Lockout Period"""
@@ -587,7 +591,7 @@ class RadialMaze(FileDrivenMaze):
             self.max_epochs_updated = True
         
         success = False
-        if self.stats.home > self.min_trials:
+        if self.stats.goals|self.stats.other and [self.stats.home > self.min_trials, self.stats.blocks][self.end_mode]:
             if type(self.success_threshold) == int:
                 if self.success_threshold < 10:
                     success = self.stats.blocks >= self.success_threshold
@@ -600,7 +604,7 @@ class RadialMaze(FileDrivenMaze):
                 success = r >= self.success_threshold
                 ssi.disp(f'success rate: {round(100*r, 1)} [threshold: {round(100*self.success_threshold, 1)}]')
         
-        if self.stats.home > self.max_trials:
+        if [self.stats.home > self.min_trials, self.stats.blocks >= maze.goal_blocks][self.end_mode]:
             ssi.disp('epoch complete: all trials finished')
         elif self.timed_out():
             ssi.disp('epoch complete: timed out')
