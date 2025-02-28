@@ -396,6 +396,7 @@ class RadialMaze(FileDrivenMaze):
         self.phase = phases.start
         self.successful_epoch = False
         self.timeout_grace_period = 10
+        self.end_epoch_next_home = False
         self.reward_error = False
         
         # Initialize the Stats Objects
@@ -527,7 +528,7 @@ class RadialMaze(FileDrivenMaze):
         self.pre_processor.down(t)
         
         # check if the epoch is over
-        if (self.end_mode == 0 and self.stats.home > self.max_trials) or self.timed_out():
+        if (self.end_mode == 0 and self.stats.home > self.max_trials) or (well == self.home and self.end_epoch_next_home) or self.timed_out():
             # End the Epoch
             self.end_epoch()
         else:
@@ -541,8 +542,8 @@ class RadialMaze(FileDrivenMaze):
                 self.search_mode = 1
                 self.stats.blocks += 1
                 if self.end_mode == 1 and self.stats.blocks >= self.goal_blocks:
-                    # End the Epoch
-                    self.end_epoch()
+                    # Set the Epoch to End
+                    self.end_epoch_next_home = True
                 else:
                     self.select_goal(t)
                     self.stats.this_goal = 0
