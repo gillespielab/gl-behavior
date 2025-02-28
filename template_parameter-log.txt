@@ -6,7 +6,7 @@ arm visits (total): [0,0,0,0,0,0]
 arm visits (weighted): [0.3,0,0,0,0,0.3]
 goal selections:  [0,0,0,0,0,0]
 goal sequence: [3,1,4,2,6,5]
-arm selection parameters (alpha, beta, gamma, delta): (0.5, -0.7, 0.85, 0.01)
+arm selection parameters (alpha, beta, gamma, delta): (0.5, -0.9, 0.9, 0.01)
 last goal: []
 
 Training Plan: (numgoals, outreps, locktime, arm selection mode, cues, forageassist, epoch end criteria, success threshold, timeout successful epochs, max epochs)
