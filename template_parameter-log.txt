@@ -3,7 +3,7 @@ Version 3
 Current State:
 arm visits (rewarded): [0,0,0,0,0,0]
 arm visits (total): [0,0,0,0,0,0]
-arm visits (weighted): [0.3,0,0,0,0,0.3]
+arm visits (weighted): [0.15,0,0,0,0,0.15]
 goal selections:  [0,0,0,0,0,0]
 goal sequence: [3,1,4,2,6,5]
 arm selection parameters (alpha, beta, gamma, delta): (0.5, -0.9, 0.9, 0.01)
