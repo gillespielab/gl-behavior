@@ -627,11 +627,15 @@ ssi.config.add_commands({
     'LOCKEND': maze.lockend,    #  indicates the end of a lockout
     'READY': maze.ready,        #  indicates that the maze has finished resetting variables and re-priming the pumps
     'STOP': maze.end_epoch,     #  command to end the epoch
-    'PING': lambda t : None     #  this exists so that the maze will timeout even if the rat isn't poking anything
 })
 
 @ssi.command('REWARD_ERROR')
 def set_reward_error(t:int = None) -> None: maze.reward_error = True #  triggered when the maze attempts to deliver multiple rewards simultaneously
+
+@ssi.command('PING')
+def ping(t:int = None) -> None:
+    if maze.timed_out():
+        maze.end_epoch()
 
 # Define the Callback Function
 def callback(line):
