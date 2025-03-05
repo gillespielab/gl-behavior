@@ -431,7 +431,7 @@ class RadialMaze(FileDrivenMaze):
     def ready(self, t):
         """Do things which should only happen after the pumps have finished re-priming"""
         # Start the Epoch Timer in StateScript
-        self.home.activate(True)
+        self.home.activate(bool(self.cues))
         self.start_time = time.time()
         wells.forbid_simultaneous_rewards()
         ssi.disp(f'maze initialization completed at {ssi.get_timestamp()} [backup epoch timer started]')
@@ -472,7 +472,7 @@ class RadialMaze(FileDrivenMaze):
                 # Activate the Goal/LEDs
                 self.home.deactivate()
                 wells.activate(self.goal)
-                wells.set_leds(self.leds, 1)
+                if self.cues: wells.set_leds(self.leds, 1)
                 
                 # Update the Phase
                 self.phase = phases.arms
