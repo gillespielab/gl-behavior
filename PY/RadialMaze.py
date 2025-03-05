@@ -589,7 +589,8 @@ class RadialMaze(FileDrivenMaze):
         self.pre_processor.close(t)
     
     def check_success_rate(self):
-        if not self.max_epochs_updated and self.stats.home > 1: # must have 1 trial to decrement the epoch counter
+        # must have 1 trial to decrement the epoch counter
+        if not self.max_epochs_updated and [self.stats.home >= max(self.min_trials, 1), self.stats.blocks >= maze.goal_blocks][self.end_mode]:
             self.max_epochs_remaining -= 1
             self.max_epochs_updated = True
         
