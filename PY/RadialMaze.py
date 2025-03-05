@@ -386,6 +386,8 @@ class RadialMaze(FileDrivenMaze):
         # Get the Wells by Group for Ease of Access
         self.home = wells[groups.home][0]
         self.outer_wells = wells.groups[groups.arms]
+        if not self.cues:
+            self.home.cued = 0
         
         # Log the Parameter File
         self.log_parameter_file('PARAMETER FILE (INITIAL):')
@@ -605,7 +607,7 @@ class RadialMaze(FileDrivenMaze):
                 success = r >= self.success_threshold
                 ssi.disp(f'success rate: {round(100*r, 1)} [threshold: {round(100*self.success_threshold, 1)}]')
         
-        if [self.stats.home > self.min_trials, self.stats.blocks >= maze.goal_blocks][self.end_mode]:
+        if [self.max_trials > -1 and self.stats.home > self.max_trials, self.stats.blocks >= maze.goal_blocks][self.end_mode]:
             ssi.disp('epoch complete: all trials finished')
         elif self.timed_out():
             ssi.disp('epoch complete: timed out')
