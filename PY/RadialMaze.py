@@ -435,6 +435,7 @@ class RadialMaze(FileDrivenMaze):
         self.start_time = time.time()
         wells.forbid_simultaneous_rewards()
         ssi.disp(f'maze initialization completed at {ssi.get_timestamp()} [backup epoch timer started]')
+        ssi.disp(f'Training Plan Index: {self.training_plan_index}')
         ssi.logger.add_line_break()
         Trial.current.start = t
         self.select_goal(t)
