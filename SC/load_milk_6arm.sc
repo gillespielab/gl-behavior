@@ -7,7 +7,7 @@ end;
 
 function 2
     portout[10]=1
-    do in 13000
+    do in 14000
         portout[10]=0
     end
 end;
@@ -21,14 +21,14 @@ end;
 
 function 4
     portout[12]=1
-    do in 11000
+    do in 13000
         portout[12]=0
     end
 end;
 
 function 5
     portout[13]=1
-    do in 13000
+    do in 15000
         portout[13]=0
     end
 end;
@@ -42,7 +42,7 @@ end;
 
 function 7
     portout[15]=1
-    do in 18000
+    do in 19000
         portout[15]=0
     end
 end;
