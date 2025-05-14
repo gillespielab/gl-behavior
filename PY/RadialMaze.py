@@ -60,7 +60,7 @@ else:
     debug = False
     name = name.lower()
     desktop = slash.join(os.getcwd().split(slash)[:-2])
-    root = f"{desktop}{slash}6-Arm-Training-Plans"
+    root = f"{desktop}{slash}Scripts"
     filepath = f"{root}{slash}{name}_parameter-log.txt"
     
     # open a new log file
