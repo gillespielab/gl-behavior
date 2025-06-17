@@ -290,6 +290,7 @@ class PreProcessor(Epoch):
         # Start a New Block
         Block.current = Block(self)
         Block.current.goal = [w.index for w in self.maze.goal]
+        Block.current.leds = [w.index for w in self.maze.leds]
         self.outreps = self.maze.reps_remaining
         Block.current.all_trials = Block.current.trials
         Block.current.start = t
