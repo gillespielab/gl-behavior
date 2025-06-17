@@ -1,4 +1,5 @@
 function 1
+    portout[1]=1
     portout[9]=1
     do in 18000
         portout[9]=0
@@ -6,6 +7,7 @@ function 1
 end;
 
 function 2
+    portout[2]=1
     portout[10]=1
     do in 14000
         portout[10]=0
@@ -13,6 +15,7 @@ function 2
 end;
 
 function 3
+    portout[3]=1
     portout[11]=1
     do in 12000
         portout[11]=0
@@ -20,6 +23,7 @@ function 3
 end;
 
 function 4
+    portout[4]=1
     portout[12]=1
     do in 13000
         portout[12]=0
@@ -27,6 +31,7 @@ function 4
 end;
 
 function 5
+    portout[5]=1
     portout[13]=1
     do in 15000
         portout[13]=0
@@ -34,6 +39,7 @@ function 5
 end;
 
 function 6
+    portout[6]=1
     portout[14]=1
     do in 18000
         portout[14]=0
@@ -41,6 +47,7 @@ function 6
 end;
 
 function 7
+    portout[7]=1
     portout[15]=1
     do in 19000
         portout[15]=0
