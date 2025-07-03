@@ -107,7 +107,7 @@ function 10
 		_rewardLock = 1 % grab the lock
 		_rewardPump = rewardPump % get the port for the pump (rewardPump could potentially be changed while the reward is being dispensed)
 		trainCounter = 0
-		while trainCounter < 3 do every 20 % deliver the reward
+		while trainCounter < 4 do every 20 % deliver the reward
 			portout[_rewardPump]=1 % reward
 			do in pulseLength 
 				portout[_rewardPump]=0 % reset reward
