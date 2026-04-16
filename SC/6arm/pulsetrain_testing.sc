@@ -5,7 +5,7 @@
 % constants    - design your pulsetrain
 int pulseLength = 10  	% how long to deliver the reward at home/rip/wait
 int pulseInterval = 20  % how long between pulses
-int pulseNum = 5 ;       % how many pulses
+int pulseNum = 5        % how many pulses
 
 % variables
 int port = 0 % used in the re-priming the pumps function and alloff function only 
