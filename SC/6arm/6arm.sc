@@ -3,7 +3,7 @@
 % DESCRIPTION: pretraining regime 	
 
 % constants
-int pulseLength = 10  	% how long to deliver the reward at home/rip/wait
+int pulseLength = 4  	% how long to deliver the reward at home/rip/wait
 int lockoutPeriod = 5000 	% length of lockout - set by python (default 5 seconds)
 
 % variables
@@ -107,7 +107,7 @@ function 10
 		_rewardLock = 1 % grab the lock
 		_rewardPump = rewardPump % get the port for the pump (rewardPump could potentially be changed while the reward is being dispensed)
 		trainCounter = 0
-		while trainCounter < 4 do every 20 % deliver the reward
+		while trainCounter < 6 do every 40 % deliver the reward
 			portout[_rewardPump]=1 % reward
 			do in pulseLength 
 				portout[_rewardPump]=0 % reset reward
@@ -125,13 +125,13 @@ function 10
 	end
 end;
 
-% 100uL reward
+% 100uL reward (arm well)
 function 11
 	if (_rewardLock == 0) do
 		_rewardLock = 1
 		_rewardPump = rewardPump
 		trainCounter = 0
-		while trainCounter < 7 do every 18 
+		while trainCounter < 21 do every 40 
 			portout[_rewardPump]=1 % reward
 			do in pulseLength 
 				portout[_rewardPump]=0 % reset reward
@@ -149,13 +149,13 @@ function 11
 	end
 end;
 
-% 150uL reward
+% 150uL reward (dont use)
 function 12
 	if (_rewardLock == 0) do
 		_rewardLock = 1
 		_rewardPump = rewardPump
 		trainCounter = 0
-		while trainCounter < 10 do every 20 
+		while trainCounter < 1 do every 1 
 			portout[_rewardPump]=1 % reward
 			do in pulseLength 
 				portout[_rewardPump]=0 % reset reward

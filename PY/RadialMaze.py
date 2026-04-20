@@ -60,7 +60,7 @@ else:
     debug = False
     name = name.lower()
     desktop = slash.join(os.getcwd().split(slash)[:-2])
-    root = f"{desktop}{slash}Scripts"
+    root = f"{desktop}{slash}gl-behavior"
     filepath = f"{root}{slash}{name}_parameter-log.txt"
     
     # open a new log file
@@ -87,7 +87,7 @@ pump_mapping = [15,9,10,11,12,13,14]  #  ports assigned to each pump (home, arms
 wells.configure(well_mapping, pump_mapping, 
     {
         groups.home: ((1, 'small reward'), 1),
-        groups.arms: ((0, 'small reward'), 6)
+        groups.arms: ((0, 'medium reward'), 6)
     }
 )
 
