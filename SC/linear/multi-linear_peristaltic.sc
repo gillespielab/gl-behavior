@@ -3,9 +3,9 @@
 % DESCRIPTION:	alternate between ends, active trial lights up
 %	
 % PARAMETERS FOR 150uL REWARD
-int deliverPeriod= 10   	% pulse duration for peristaltic
-int interval = 20		% pulse+interpulse interval
-int pulsenum = 7		% # pulses
+int deliverPeriod= 4   	% pulse duration for peristaltic
+int interval = 40		% pulse+interpulse interval
+int pulsenum = 25		% # pulses
 
 
 % set variables for each lane
